@@ -1,0 +1,24 @@
+{
+    "publish": {
+        "navimow_running_status": { 
+            "command": "Is Navimow i105 running?", 
+            "regex": ".*105 (.*)\\.", 
+            "result_map": { 
+                "is running": "Run",
+                "is paused": "Pause",
+                "isn't running": "Dock"
+            }
+        },
+        "navimow_battery_status": { 
+            "command": "Navimow i105 battery level?", 
+            "regex": "([0-9]+) *percent" 
+        }
+    },
+    "subscribe": {
+        "navimow_running": {
+            "Run": "start Navimow i105",
+            "Pause": "pause Navimow i105",
+            "Dock": "dock Navimow i105"
+        }
+    }
+}

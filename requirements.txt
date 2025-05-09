@@ -1,0 +1,5 @@
+gassist_text
+google-auth
+google-auth-oauthlib
+google-assistant-sdk
+paho-mqtt

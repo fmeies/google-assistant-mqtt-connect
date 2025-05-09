@@ -1,0 +1,9 @@
+{
+	"MQTT_SERVER" : "raspi",
+	"MQTT_PORT" : 1883,
+	"MQTT_TOPIC" : "google_assistant",
+	"MQTT_CLIENT_ID" : "google_assistant_client",
+	"MQTT_USERNAME" : "username",
+	"MQTT_PASSWORD" : "password",
+	"GOOGLE_API_RELOAD_INTERVAL" : 300
+}

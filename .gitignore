@@ -1,0 +1,5 @@
+.venv
+pyvenv.cfg
+token.json
+*secret.json
+.env

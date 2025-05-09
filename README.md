@@ -42,8 +42,4 @@ Start the connector with the following command. The connector will run in the fo
 python3 src/main.py
 ```
 
-Alternatively, you can create a systemd service to run the connector in the background. The service file is included in the project. You can copy it to `/etc/systemd/system/` and adjust the values to your needs. After you have copied the file, you can start the service with the following command:
-
-```
-sudo systemctl start google_assistant_mqtt_connector.service
-```
+Alternatively, you can create a systemd service to run the connector in the background. 

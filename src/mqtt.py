@@ -64,7 +64,7 @@ def init_mqtt_client() -> None:
     password = server_config.get("MQTT_PASSWORD")
 
     global mqtt_client
-    mqtt_client = pahomqtt.Client(protocol=mqtt.MQTTv311)
+    mqtt_client = pahomqtt.Client(protocol=pahomqtt.MQTTv311)
     mqtt_client.user_data_set(client_id)
     if user_name and password:
         mqtt_client.username_pw_set(user_name, password)

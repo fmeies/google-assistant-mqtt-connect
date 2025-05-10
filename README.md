@@ -39,7 +39,15 @@ Have a look at the `mqtt_config.json` file. You can adjust the configuration to 
 Start the connector with the following command. The connector will run in the foreground and print log messages to the console. You can stop the connector with `Ctrl+C`.
 
 ```
-python3 src/main.py
+python3 run.py
 ```
 
 Alternatively, you can create a systemd service to run the connector in the background. 
+
+## Run the tests
+
+You can run the tests with the following command.
+
+```
+pytest -v
+```

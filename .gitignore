@@ -4,3 +4,4 @@ pyvenv.cfg
 token.json
 *secret.json
 .env
+__pycache__

@@ -2,9 +2,10 @@
 import logging
 import datetime
 import json
-import paho.mqtt.client as mqtt  # Third-party library
-from assistant import call_assistant  # Local import
-from config import server_config, mqtt_config
+import paho.mqtt.client as pahomqtt
+
+from .assistant import call_assistant
+from .config import server_config, mqtt_config
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ def on_message(client, userdata, message) -> None:
     # get the topic and payload
     topic = message.topic # e.g., "google-assistant/cmnd/navimow_running"
     cmnd = message.payload.decode("utf-8") # e.g., "Run"
-    main_topic = server_config["MQTT_TOPIC"]
+    main_topic = server_config.get("MQTT_TOPIC")
     subtopic = topic.replace(f"{main_topic}/cmnd/", "") # e.g., "navimow_running"
     
     subscribed_commands = mqtt_config.get("subscribe", {})
@@ -41,7 +42,7 @@ def on_message(client, userdata, message) -> None:
 
 def publish_to_mqtt(data) -> None:
     """Publish the data to the MQTT topic."""
-    topic = server_config["MQTT_TOPIC"]
+    topic = server_config.get("MQTT_TOPIC")
     payload = {
         "sdk_calls_today": int(data["sdk_calls_today"]),
         "error": data["error"],
@@ -53,7 +54,7 @@ def publish_to_mqtt(data) -> None:
     logger.info(f"Publishing payload to topic: {topic}/stat")
     mqtt_client.publish(f"{topic}/stat", payload_json)
 
-def init_mqtt_client(server_config) -> None:
+def init_mqtt_client() -> None:
     """Set up and return an MQTT client."""
     client_id = server_config["MQTT_CLIENT_ID"]
     server = server_config["MQTT_SERVER"]
@@ -63,7 +64,7 @@ def init_mqtt_client(server_config) -> None:
     password = server_config.get("MQTT_PASSWORD")
 
     global mqtt_client
-    mqtt_client = mqtt.Client(protocol=mqtt.MQTTv311)
+    mqtt_client = pahomqtt.Client(protocol=mqtt.MQTTv311)
     mqtt_client.user_data_set(client_id)
     if user_name and password:
         mqtt_client.username_pw_set(user_name, password)

@@ -1,4 +1,5 @@
 import logging
+
 from google.oauth2.credentials import Credentials  # Third-party library
 from gassist_text import TextAssistant  # Local import
 

@@ -1,20 +1,11 @@
+import logging
 import threading
 import time
-import logging
 
-from config import (
-    init_config,
-    server_config
-)
-from mqtt import (
-    init_mqtt_client
-)
-from assistant import (
-    init_assistant,
-)
-from data import (
-    data_updater
-)
+from .config import init_config
+from .mqtt import init_mqtt_client
+from .assistant import init_assistant
+from .data import data_updater
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +21,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     """Main entry point for the application."""
     init_config()
-    init_mqtt_client(server_config)
+    init_mqtt_client()
     init_assistant()
     
     threading.Thread(target=data_updater, daemon=True).start()

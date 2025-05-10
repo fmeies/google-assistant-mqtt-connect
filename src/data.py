@@ -1,10 +1,11 @@
 import logging
+import datetime
 import time
 import re
-import datetime
-import mqtt
-import assistant
-from config import server_config, mqtt_config
+
+from .assistant import call_assistant
+from .config import server_config, mqtt_config
+from .mqtt import publish_to_mqtt
 
 DEFAULT_GOOGLE_API_RELOAD_INTERVAL = 300
 
@@ -32,7 +33,7 @@ def update_data() -> None:
             command = value["command"]
             regex_str = value.get("regex", "(.*)")
             result_map = value.get("result_map", {})
-            answer = assistant.call_assistant(command)
+            answer = call_assistant(command)
             regex = re.compile(regex_str)
             match = re.search(regex, answer)
             counter += 1
@@ -55,7 +56,7 @@ def update_data() -> None:
         else:
             data_cache["sdk_calls_today"] += counter
         
-        mqtt.publish_to_mqtt(data_cache)
+        publish_to_mqtt(data_cache)
     except Exception as e:
         logger.error(f"Error updating status cache: {e}")
         data_cache["error"] = str(e)

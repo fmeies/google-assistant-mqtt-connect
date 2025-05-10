@@ -3,3 +3,5 @@ google-auth
 google-auth-oauthlib
 google-assistant-sdk
 paho-mqtt
+cachetools
+pytest

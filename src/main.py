@@ -3,9 +3,11 @@ import threading
 import time
 
 from .config import init_config
-from .mqtt import init_mqtt_client
+from .mqtt import init_mqtt_client, publish_to_mqtt
 from .assistant import init_assistant
-from .data import data_updater
+from .data import update_data
+
+DEFAULT_GOOGLE_API_RELOAD_INTERVAL = 300
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,13 +20,22 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+def update_and_publish_data(server_config, mqtt_config) -> None:
+    """Periodically update the status cache by querying the Google Assistant."""
+    while True:
+        data = update_data(mqtt_config)
+        publish_to_mqtt(server_config, mqtt_config, data)
+        time.sleep(server_config.get("GOOGLE_API_RELOAD_INTERVAL", DEFAULT_GOOGLE_API_RELOAD_INTERVAL))
+
 def main() -> None:
     """Main entry point for the application."""
-    init_config()
-    init_mqtt_client()
+    server_config, mqtt_config = init_config()
+    init_mqtt_client(server_config, mqtt_config)
     init_assistant()
     
-    threading.Thread(target=data_updater, daemon=True).start()
+    # init thread, pass server_config to the function
+    # to avoid circular import
+    threading.Thread(target=update_and_publish_data, args=(server_config, mqtt_config), daemon=True).start()
     
     try:
         while True:

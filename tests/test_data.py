@@ -1,16 +1,13 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.data import update_data, data_cache
+from src.data import update_data
 
 class TestData(unittest.TestCase):
     @patch("src.data.call_assistant")
-    @patch("src.data.publish_to_mqtt")
-    @patch("src.data.mqtt_config")
-    @patch("src.data.server_config")
-    def test_update_data(self, mock_server_config, mock_mqtt_config, mock_publish_to_mqtt, mock_call_assistant):
+    def test_update_data(self, mock_call_assistant):
         """Test the update_data function."""
         # Mock configurations
-        mock_mqtt_config.get.side_effect = lambda key, default: {
+        mock_mqtt_config = {
             "publish": {
                 "key1": {
                     "command": "Test Command 1",
@@ -23,9 +20,7 @@ class TestData(unittest.TestCase):
                     "result_map": {}
                 }
             }
-        }.get(key, default)
-
-        mock_server_config.get.return_value = 300
+        }
 
         # Mock call_assistant responses
         mock_call_assistant.side_effect = [
@@ -34,29 +29,25 @@ class TestData(unittest.TestCase):
         ]
 
         # Call the function
-        update_data()
+        data = update_data(mock_mqtt_config) 
 
         # Assert that call_assistant was called with the correct commands
         mock_call_assistant.assert_any_call("Test Command 1")
         mock_call_assistant.assert_any_call("Test Command 2")
         self.assertEqual(mock_call_assistant.call_count, 2)
 
-        # Assert that data_cache was updated correctly
-        self.assertEqual(data_cache["key1"], "Success")
-        self.assertEqual(data_cache["key2"], "TestValue")
-        self.assertIsNotNone(data_cache["timestamp"])
-        self.assertIsNone(data_cache["error"])
-
-        # Assert that publish_to_mqtt was called with the updated data_cache
-        mock_publish_to_mqtt.assert_called_once_with(data_cache)
+        # Assert that data was updated correctly
+        self.assertEqual(data["key1"], "Success")
+        self.assertEqual(data["key2"], "TestValue")
+        self.assertIsNotNone(data["timestamp"])
+        self.assertIsNone(data["error"])
 
     @patch("src.data.call_assistant")
     @patch("src.data.logger")
-    @patch("src.data.mqtt_config")
-    def test_update_data_error_handling(self, mock_mqtt_config, mock_logger, mock_call_assistant):
+    def test_update_data_error_handling(self, mock_logger, mock_call_assistant):
         """Test error handling in update_data."""
         # Mock configurations
-        mock_mqtt_config.get.side_effect = lambda key, default: {
+        mock_mqtt_config = {
             "publish": {
                 "key1": {
                     "command": "Test Command 1",
@@ -64,21 +55,21 @@ class TestData(unittest.TestCase):
                     "result_map": {}
                 }
             }
-        }.get(key, default)
+        }
 
         # Mock call_assistant to raise an exception
         mock_call_assistant.side_effect = Exception("Test error")
 
         # Call the function
-        update_data()
+        data = update_data(mock_mqtt_config)
 
         # Assert that the error was logged
         mock_logger.error.assert_called_once_with("Error updating status cache: Test error")
 
         # Assert that data_cache was updated with the error
-        self.assertEqual(data_cache["error"], "Test error")
-        self.assertIsNotNone(data_cache["timestamp"])
-        self.assertIsNone(data_cache["key1"])
+        self.assertEqual(data["error"], "Test error")
+        self.assertIsNotNone(data["timestamp"])
+        self.assertIsNone(data["key1"])
 
 if __name__ == "__main__":
     unittest.main()

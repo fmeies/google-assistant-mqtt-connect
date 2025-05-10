@@ -4,10 +4,6 @@ import time
 import re
 
 from .assistant import call_assistant
-from .config import server_config, mqtt_config
-from .mqtt import publish_to_mqtt
-
-DEFAULT_GOOGLE_API_RELOAD_INTERVAL = 300
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +14,7 @@ data_cache = {
     "sdk_calls_today_date": None
 }
 
-def data_updater() -> None:
-    """Periodically update the status cache by querying the Google Assistant."""
-    while True:
-        update_data()
-        time.sleep(server_config.get("GOOGLE_API_RELOAD_INTERVAL", DEFAULT_GOOGLE_API_RELOAD_INTERVAL))
-
-def update_data() -> None:
+def update_data(mqtt_config) -> dict:
     """Update the status cache by querying the Google Assistant and publishing the results to MQTT."""
     try:
         global data_cache
@@ -55,12 +45,13 @@ def update_data() -> None:
             data_cache["sdk_calls_today_date"] = today
         else:
             data_cache["sdk_calls_today"] += counter
-        
-        publish_to_mqtt(data_cache)
+
     except Exception as e:
         logger.error(f"Error updating status cache: {e}")
         data_cache["error"] = str(e)
         data_cache["timestamp"] = time.time()
         for key in mqtt_config.get("publish", {}).keys():
             data_cache[key] = None
+    
+    return data_cache
 

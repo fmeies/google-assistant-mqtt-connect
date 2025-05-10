@@ -5,20 +5,17 @@ import json
 import paho.mqtt.client as pahomqtt
 
 from .assistant import call_assistant
-from .config import server_config, mqtt_config
 
 logger = logging.getLogger(__name__)
 
 mqtt_client = None
 
-def on_message(client, userdata, message) -> None:
+def on_message(client, mqtt_config, message) -> None:
     """Callback function to handle incoming messages."""
     # get the topic and payload
     topic = message.topic # e.g., "google-assistant/cmnd/navimow_running"
     cmnd = message.payload.decode("utf-8") # e.g., "Run"
-    main_topic = server_config.get("MQTT_TOPIC")
-    subtopic = topic.replace(f"{main_topic}/cmnd/", "") # e.g., "navimow_running"
-    
+    subtopic = topic.split("/")[-1] # e.g., "navimow_running"
     subscribed_commands = mqtt_config.get("subscribe", {})
     
     # check if the subtopic is in the subscribed commands
@@ -40,7 +37,7 @@ def on_message(client, userdata, message) -> None:
     except Exception as e:
         logger.error(f"Error processing command: {e}")
 
-def publish_to_mqtt(data) -> None:
+def publish_to_mqtt(server_config, mqtt_config, data) -> None:
     """Publish the data to the MQTT topic."""
     topic = server_config.get("MQTT_TOPIC")
     payload = {
@@ -54,7 +51,7 @@ def publish_to_mqtt(data) -> None:
     logger.info(f"Publishing payload to topic: {topic}/stat")
     mqtt_client.publish(f"{topic}/stat", payload_json)
 
-def init_mqtt_client() -> None:
+def init_mqtt_client(server_config, mqtt_config) -> None:
     """Set up and return an MQTT client."""
     client_id = server_config["MQTT_CLIENT_ID"]
     server = server_config["MQTT_SERVER"]
@@ -68,6 +65,8 @@ def init_mqtt_client() -> None:
     mqtt_client.user_data_set(client_id)
     if user_name and password:
         mqtt_client.username_pw_set(user_name, password)
+    # add mqtt_config to userdata
+    mqtt_client.user_data_set(mqtt_config)
     mqtt_client.on_message = on_message
     mqtt_client.reconnect_delay_set(min_delay=1, max_delay=120)
     mqtt_client.connect(server, port, 60)

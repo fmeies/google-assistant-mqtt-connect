@@ -40,7 +40,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(data["key1"], "Success")
         self.assertEqual(data["key2"], "TestValue")
         self.assertIsNotNone(data["timestamp"])
-        self.assertIsNone(data["error"])
+        self.assertEqual(data["error"], "")
 
     @patch("src.data.call_assistant")
     @patch("src.data.logger")

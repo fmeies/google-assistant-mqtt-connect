@@ -42,6 +42,7 @@ def update_data(mqtt_config) -> dict:
                 data_cache[key] = result_map[result]
             else:
                 data_cache[key] = result
+            logger.info("Received data for key %s: %s", key, data_cache[key])
 
         data_cache["timestamp"] = time.time()
         data_cache["error"] = ""

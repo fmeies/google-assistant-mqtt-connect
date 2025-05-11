@@ -16,10 +16,12 @@ data_cache = {
 
 def update_data(mqtt_config) -> dict:
     """Update the status cache by querying the Google Assistant and publishing the results to MQTT."""
+    logger.info("Starting data update...")
     try:
         global data_cache
         counter = 0
         for key, value in mqtt_config.get("publish", {}).items():
+            logger.debug(f"Processing key: {key}, value: {value}")
             command = value["command"]
             regex_str = value.get("regex", "(.*)")
             result_map = value.get("result_map", {})
@@ -37,7 +39,7 @@ def update_data(mqtt_config) -> dict:
                 data_cache[key] = result
         
         data_cache["timestamp"] = time.time()
-        data_cache["error"] = None
+        data_cache["error"] = ""
         
         today = datetime.date.today().isoformat()
         if data_cache.get("sdk_calls_today_date") != today:
@@ -46,9 +48,10 @@ def update_data(mqtt_config) -> dict:
         else:
             data_cache["sdk_calls_today"] += counter
 
+        logger.info("Data update completed successfully.")
     except Exception as e:
         logger.error(f"Error updating status cache: {e}")
-        data_cache["error"] = str(e)
+        data_cache["error"] = re.sub(r"[\n\t]", "", str(e))
         data_cache["timestamp"] = time.time()
         for key in mqtt_config.get("publish", {}).keys():
             data_cache[key] = None

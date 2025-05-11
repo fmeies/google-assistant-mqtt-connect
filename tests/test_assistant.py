@@ -10,10 +10,18 @@ class TestAssistant(unittest.TestCase):
         mock_credentials.return_value = MagicMock()
         mock_text_assistant.return_value = MagicMock()
         
-        init_assistant()
+        server_config = {
+            "GOOGLE_API_LANGUAGE": "de-DE"
+        }
+        init_assistant(server_config)
         
         mock_credentials.assert_called_once_with("token.json")
-        mock_text_assistant.assert_called_once()
+        # assert the TextAssistant is initialized with the correct parameters
+        mock_text_assistant.assert_called_once_with(
+            mock_credentials.return_value,
+            server_config["GOOGLE_API_LANGUAGE"],
+            display=True
+        )
 
     @patch("src.assistant.text_assistant")
     def test_call_assistant(self, mock_text_assistant):

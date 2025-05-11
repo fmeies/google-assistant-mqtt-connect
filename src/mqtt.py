@@ -1,4 +1,3 @@
-
 import logging
 import datetime
 import json
@@ -49,7 +48,11 @@ def publish_to_mqtt(server_config, mqtt_config, data) -> None:
         payload[key] = data[key]
     payload_json = json.dumps(payload)
     logger.info(f"Publishing payload to topic: {topic}/stat")
-    mqtt_client.publish(f"{topic}/stat", payload_json)
+    try:
+        mqtt_client.publish(f"{topic}/stat", payload_json)
+        logger.info(f"Published payload to topic: {topic}/stat")
+    except Exception as e:
+        logger.error(f"Failed to publish to topic {topic}/stat: {e}")
 
 def init_mqtt_client(server_config, mqtt_config) -> None:
     """Set up and return an MQTT client."""

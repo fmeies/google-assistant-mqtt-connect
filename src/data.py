@@ -1,3 +1,7 @@
+"""
+This module handles the data update process for the Google Assistant integration.
+"""
+
 import logging
 import datetime
 import time
@@ -11,17 +15,18 @@ data_cache = {
     "timestamp": 0,
     "error": None,
     "sdk_calls_today": 0,
-    "sdk_calls_today_date": None
+    "sdk_calls_today_date": None,
 }
 
+
 def update_data(mqtt_config) -> dict:
-    """Update the status cache by querying the Google Assistant and publishing the results to MQTT."""
+    """Update the status cache by querying the Google Assistant
+    and publishing the results to MQTT."""
     logger.info("Starting data update...")
     try:
-        global data_cache
         counter = 0
         for key, value in mqtt_config.get("publish", {}).items():
-            logger.debug(f"Processing key: {key}, value: {value}")
+            logger.debug("Processing key: %s, value: %s", key, value)
             command = value["command"]
             regex_str = value.get("regex", "(.*)")
             result_map = value.get("result_map", {})
@@ -37,10 +42,10 @@ def update_data(mqtt_config) -> dict:
                 data_cache[key] = result_map[result]
             else:
                 data_cache[key] = result
-        
+
         data_cache["timestamp"] = time.time()
         data_cache["error"] = ""
-        
+
         today = datetime.date.today().isoformat()
         if data_cache.get("sdk_calls_today_date") != today:
             data_cache["sdk_calls_today"] = counter
@@ -50,11 +55,10 @@ def update_data(mqtt_config) -> dict:
 
         logger.info("Data update completed successfully.")
     except Exception as e:
-        logger.error(f"Error updating status cache: {e}")
+        logger.error("Error updating status cache: %s", e)
         data_cache["error"] = re.sub(r"[\n\t]", "", str(e))
         data_cache["timestamp"] = time.time()
         for key in mqtt_config.get("publish", {}).keys():
             data_cache[key] = None
-    
-    return data_cache
 
+    return data_cache

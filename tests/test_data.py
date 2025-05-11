@@ -1,6 +1,7 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.data import update_data
+
 
 class TestData(unittest.TestCase):
     @patch("src.data.call_assistant")
@@ -12,24 +13,24 @@ class TestData(unittest.TestCase):
                 "key1": {
                     "command": "Test Command 1",
                     "regex": r"Result: (\d+)",
-                    "result_map": {"1": "Success", "0": "Failure"}
+                    "result_map": {"1": "Success", "0": "Failure"},
                 },
                 "key2": {
                     "command": "Test Command 2",
                     "regex": r"Value: (\w+)",
-                    "result_map": {}
-                }
+                    "result_map": {},
+                },
             }
         }
 
         # Mock call_assistant responses
         mock_call_assistant.side_effect = [
             "Result: 1",  # For key1
-            "Value: TestValue"  # For key2
+            "Value: TestValue",  # For key2
         ]
 
         # Call the function
-        data = update_data(mock_mqtt_config) 
+        data = update_data(mock_mqtt_config)
 
         # Assert that call_assistant was called with the correct commands
         mock_call_assistant.assert_any_call("Test Command 1")
@@ -52,7 +53,7 @@ class TestData(unittest.TestCase):
                 "key1": {
                     "command": "Test Command 1",
                     "regex": r"Result: (\d+)",
-                    "result_map": {}
+                    "result_map": {},
                 }
             }
         }
@@ -64,12 +65,13 @@ class TestData(unittest.TestCase):
         data = update_data(mock_mqtt_config)
 
         # Assert that the error was logged
-        mock_logger.error.assert_called_once_with("Error updating status cache: Test error")
+        mock_logger.error.assert_called_once()
 
         # Assert that data_cache was updated with the error
         self.assertEqual(data["error"], "Test error")
         self.assertIsNotNone(data["timestamp"])
         self.assertIsNone(data["key1"])
+
 
 if __name__ == "__main__":
     unittest.main()

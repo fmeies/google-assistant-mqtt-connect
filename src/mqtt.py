@@ -1,3 +1,7 @@
+"""
+This module provides functionality to interact with an MQTT broker.
+"""
+
 import logging
 import datetime
 import json
@@ -7,34 +11,36 @@ from .assistant import call_assistant
 
 logger = logging.getLogger(__name__)
 
-mqtt_client = None
+MQTT_CLIENT = None
 
-def on_message(client, mqtt_config, message) -> None:
+
+def on_message(_client, mqtt_config, message) -> None:
     """Callback function to handle incoming messages."""
     # get the topic and payload
-    topic = message.topic # e.g., "google-assistant/cmnd/navimow_running"
-    cmnd = message.payload.decode("utf-8") # e.g., "Run"
-    subtopic = topic.split("/")[-1] # e.g., "navimow_running"
+    topic = message.topic  # e.g., "google-assistant/cmnd/navimow_running"
+    cmnd = message.payload.decode("utf-8")  # e.g., "Run"
+    subtopic = topic.split("/")[-1]  # e.g., "navimow_running"
     subscribed_commands = mqtt_config.get("subscribe", {})
-    
+
     # check if the subtopic is in the subscribed commands
     if subtopic not in subscribed_commands:
-        logger.warning(f"Received message on unsubscribed topic: {subtopic}")
+        logger.warning("Received message on unsubscribed topic: %s", subtopic)
         return
-    
+
     # check if the command is in the subscribed commands
     if cmnd not in subscribed_commands[subtopic]:
-        logger.warning(f"Received command not in subscribed commands: {cmnd}")
+        logger.warning("Received command not in subscribed commands: %s", cmnd)
         return
-    
+
     # get the command from the subscribed commands
     command = subscribed_commands[subtopic].get(cmnd)
-    logger.info(f"Executing command: {command}")
-    
+    logger.info("Executing command: %s", command)
+
     try:
         call_assistant(command)
     except Exception as e:
-        logger.error(f"Error processing command: {e}")
+        logger.error("Error processing command: %s", e)
+
 
 def publish_to_mqtt(server_config, mqtt_config, data) -> None:
     """Publish the data to the MQTT topic."""
@@ -42,17 +48,24 @@ def publish_to_mqtt(server_config, mqtt_config, data) -> None:
     payload = {
         "sdk_calls_today": int(data["sdk_calls_today"]),
         "error": data["error"],
-        "timestamp": datetime.datetime.fromtimestamp(data["timestamp"]).strftime('%Y-%m-%d %H:%M:%S') if data["timestamp"] else None
+        "timestamp": (
+            datetime.datetime.fromtimestamp(data["timestamp"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            if data["timestamp"]
+            else None
+        ),
     }
-    for key, value in mqtt_config.get("publish", {}).items():
+    for key, _value in mqtt_config.get("publish", {}).items():
         payload[key] = data[key]
     payload_json = json.dumps(payload)
-    logger.info(f"Publishing payload to topic: {topic}/stat")
+    logger.info("Publishing payload to topic: %s/stat", topic)
     try:
-        mqtt_client.publish(f"{topic}/stat", payload_json)
-        logger.info(f"Published payload to topic: {topic}/stat")
+        MQTT_CLIENT.publish(f"{topic}/stat", payload_json)
+        logger.info("Published payload to topic: %s/stat", topic)
     except Exception as e:
-        logger.error(f"Failed to publish to topic {topic}/stat: {e}")
+        logger.error("Failed to publish to topic %s/stat: %s", topic, e)
+
 
 def init_mqtt_client(server_config, mqtt_config) -> None:
     """Set up and return an MQTT client."""
@@ -63,16 +76,16 @@ def init_mqtt_client(server_config, mqtt_config) -> None:
     user_name = server_config.get("MQTT_USERNAME")
     password = server_config.get("MQTT_PASSWORD")
 
-    global mqtt_client
-    mqtt_client = pahomqtt.Client(protocol=pahomqtt.MQTTv311)
-    mqtt_client.user_data_set(client_id)
+    global MQTT_CLIENT
+    MQTT_CLIENT = pahomqtt.Client(protocol=pahomqtt.MQTTv311)
+    MQTT_CLIENT.user_data_set(client_id)
     if user_name and password:
-        mqtt_client.username_pw_set(user_name, password)
+        MQTT_CLIENT.username_pw_set(user_name, password)
     # add mqtt_config to userdata
-    mqtt_client.user_data_set(mqtt_config)
-    mqtt_client.on_message = on_message
-    mqtt_client.reconnect_delay_set(min_delay=1, max_delay=120)
-    mqtt_client.connect(server, port, 60)
-    logger.info(f"Subscribing to topic: {topic}/cmnd/#")
-    mqtt_client.subscribe(f"{topic}/cmnd/#")
-    mqtt_client.loop_start()
+    MQTT_CLIENT.user_data_set(mqtt_config)
+    MQTT_CLIENT.on_message = on_message
+    MQTT_CLIENT.reconnect_delay_set(min_delay=1, max_delay=120)
+    MQTT_CLIENT.connect(server, port, 60)
+    logger.info("Subscribing to topic: %s/cmnd/#", topic)
+    MQTT_CLIENT.subscribe(f"{topic}/cmnd/#")
+    MQTT_CLIENT.loop_start()

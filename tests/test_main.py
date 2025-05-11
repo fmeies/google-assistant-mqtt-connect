@@ -85,7 +85,9 @@ class TestMain(unittest.TestCase):
         else:
             # Assert that update_data and publish_to_mqtt were NOT called
             mock_update_data.assert_not_called()
-            mock_publish_to_mqtt.assert_not_called()
+            mock_publish_to_mqtt.assert_called_once_with(
+                server_config, mqtt_config, {}
+            )
 
 
 if __name__ == "__main__":

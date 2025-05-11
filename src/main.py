@@ -27,12 +27,12 @@ logger = logging.getLogger(__name__)
 
 def update_and_publish_data(server_config, mqtt_config) -> None:
     """Periodically update the status cache by querying the Google Assistant."""
+    data = {}
     while True:
         request_pause = server_config.get("REQUEST_PAUSE_HOURS", [])
         current_hour = time.localtime().tm_hour
         if current_hour not in request_pause:
             data = update_data(mqtt_config)
-            publish_to_mqtt(server_config, mqtt_config, data)
         else:
             # log request pause hours
             # and skip data update
@@ -40,6 +40,7 @@ def update_and_publish_data(server_config, mqtt_config) -> None:
                 "Skipping data update during request pause hours: %s",
                 str(request_pause),
             )
+        publish_to_mqtt(server_config, mqtt_config, data)
 
         time.sleep(
             server_config.get(

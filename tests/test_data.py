@@ -1,13 +1,15 @@
 import unittest
-from unittest.mock import patch
-from src.data import update_data
+from unittest.mock import patch, MagicMock
+from src.data import DataUpdater
 
 
-class TestData(unittest.TestCase):
-    @patch("src.data.call_assistant")
-    def test_update_data(self, mock_call_assistant):
-        """Test the update_data function."""
-        # Mock configurations
+class TestDataUpdater(unittest.TestCase):
+    def test_update_data(self):
+        """Test the update_data method."""
+        # Mock assistant and MQTT configuration
+        mock_assistant = MagicMock()
+        mock_assistant.call_assistant.side_effect = ["Result: 1", "Value: TestValue"]
+
         mock_mqtt_config = {
             "publish": {
                 "key1": {
@@ -23,31 +25,30 @@ class TestData(unittest.TestCase):
             }
         }
 
-        # Mock call_assistant responses
-        mock_call_assistant.side_effect = [
-            "Result: 1",  # For key1
-            "Value: TestValue",  # For key2
-        ]
+        # Initialize DataUpdater
+        data_updater = DataUpdater(mock_assistant, mock_mqtt_config)
 
-        # Call the function
-        data = update_data(mock_mqtt_config)
+        # Call update_data
+        data = data_updater.update_data()
 
-        # Assert that call_assistant was called with the correct commands
-        mock_call_assistant.assert_any_call("Test Command 1")
-        mock_call_assistant.assert_any_call("Test Command 2")
-        self.assertEqual(mock_call_assistant.call_count, 2)
-
-        # Assert that data was updated correctly
+        # Assert data cache updates
         self.assertEqual(data["key1"], "Success")
         self.assertEqual(data["key2"], "TestValue")
         self.assertIsNotNone(data["timestamp"])
         self.assertEqual(data["error"], "")
 
-    @patch("src.data.call_assistant")
+        # Assert assistant calls
+        mock_assistant.call_assistant.assert_any_call("Test Command 1")
+        mock_assistant.call_assistant.assert_any_call("Test Command 2")
+        self.assertEqual(mock_assistant.call_assistant.call_count, 2)
+
     @patch("src.data.logger")
-    def test_update_data_error_handling(self, mock_logger, mock_call_assistant):
-        """Test error handling in update_data."""
-        # Mock configurations
+    def test_update_data_error_handling(self, mock_logger):
+        """Test the update_data method."""
+        # Mock call_assistant to raise an exception
+        mock_assistant = MagicMock()
+        mock_assistant.call_assistant.side_effect = Exception("Test error")
+
         mock_mqtt_config = {
             "publish": {
                 "key1": {
@@ -58,11 +59,11 @@ class TestData(unittest.TestCase):
             }
         }
 
-        # Mock call_assistant to raise an exception
-        mock_call_assistant.side_effect = Exception("Test error")
+        # Initialize DataUpdater
+        data_updater = DataUpdater(mock_assistant, mock_mqtt_config)
 
-        # Call the function
-        data = update_data(mock_mqtt_config)
+        # Call update_data
+        data = data_updater.update_data()
 
         # Assert that the error was logged
         mock_logger.error.assert_called_once()

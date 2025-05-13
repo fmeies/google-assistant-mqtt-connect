@@ -6,67 +6,74 @@ import logging
 import threading
 import time
 
-from .config import init_config
-from .mqtt import init_mqtt_client, publish_to_mqtt
-from .assistant import init_assistant
-from .data import update_data
+from .config import Config
+from .mqtt import MQTTClient
+from .assistant import GoogleAssistant
+from .data import DataUpdater
 
 DEFAULT_GOOGLE_API_RELOAD_INTERVAL = 300
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        # logging.FileHandler("/var/log/connector.log"),  # Logs to a file
-        logging.StreamHandler()  # Logs to stdout
-    ],
+    handlers=[logging.StreamHandler()],  # Logs to stdout
 )
 
 logger = logging.getLogger(__name__)
 
 
-def update_and_publish_data(server_config, mqtt_config) -> None:
-    """Periodically update the status cache by querying the Google Assistant."""
-    data = {}
-    while True:
-        request_pause = server_config.get("REQUEST_PAUSE_HOURS", [])
+# pylint: disable=R0903
+class MainApplication:
+    """Encapsulates the main application logic."""
+
+    def __init__(self):
+        """Initialize the application."""
+        self.config = Config()  # Load and validate configurations
+        self.server_config = self.config.get_server_config()
+        self.mqtt_config = self.config.get_mqtt_config()
+        self.assistant = GoogleAssistant(self.server_config)
+        self.data_updater = DataUpdater(self.assistant, self.mqtt_config)
+        self.mqtt_client = MQTTClient(
+            self.assistant, self.server_config, self.mqtt_config
+        )
+
+    def _update_loop(self) -> None:
+        """Periodically update the status cache by querying the Google Assistant."""
+        while True:
+            self.update_and_publish_data()
+            time.sleep(
+                self.server_config.get(
+                    "GOOGLE_API_RELOAD_INTERVAL", DEFAULT_GOOGLE_API_RELOAD_INTERVAL
+                )
+            )
+
+    def update_and_publish_data(self) -> None:
+        """Update the data and publish it to MQTT."""
+        request_pause = self.server_config.get("REQUEST_PAUSE_HOURS", [])
         current_hour = time.localtime().tm_hour
         if current_hour not in request_pause:
-            data = update_data(mqtt_config)
+            data = self.data_updater.update_data()
         else:
-            # log request pause hours
-            # and skip data update
             logger.info(
                 "Skipping data update during request pause hours: %s",
                 str(request_pause),
             )
-        publish_to_mqtt(server_config, mqtt_config, data)
+            data = self.data_updater.data_cache
 
-        time.sleep(
-            server_config.get(
-                "GOOGLE_API_RELOAD_INTERVAL", DEFAULT_GOOGLE_API_RELOAD_INTERVAL
-            )
-        )
+        self.mqtt_client.publish_to_mqtt(data)
 
+    def run(self) -> None:
+        """Run the main application."""
+        # Start the update and publish thread
+        threading.Thread(target=self._update_loop, daemon=True).start()
 
-def main() -> None:
-    """Main entry point for the application."""
-    server_config, mqtt_config = init_config()
-    init_mqtt_client(server_config, mqtt_config)
-    init_assistant(server_config)
-
-    # init thread, pass server_config to the function
-    # to avoid circular import
-    threading.Thread(
-        target=update_and_publish_data, args=(server_config, mqtt_config), daemon=True
-    ).start()
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Shutting down...")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Shutting down...")
 
 
 if __name__ == "__main__":
-    main()
+    app = MainApplication()
+    app.run()

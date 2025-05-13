@@ -1,4 +1,6 @@
-from src.main import main
+from src.main import MainApplication
 
 if __name__ == "__main__":
-    main()
+    # Initialize and run the main application
+    app = MainApplication()
+    app.run()

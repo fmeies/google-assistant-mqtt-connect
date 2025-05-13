@@ -1,38 +1,32 @@
 import unittest
-from unittest.mock import patch, MagicMock
-from src.assistant import init_assistant, call_assistant
+from unittest.mock import patch
+from src.assistant import GoogleAssistant
 
 
-class TestAssistant(unittest.TestCase):
-    @patch("src.assistant.Credentials.from_authorized_user_file")
+class TestGoogleAssistant(unittest.TestCase):
     @patch("src.assistant.TextAssistant")
-    def test_init_assistant(self, mock_text_assistant, mock_credentials):
-        """Test the initialization of the Google Assistant."""
-        mock_credentials.return_value = MagicMock()
-        mock_text_assistant.return_value = MagicMock()
+    @patch("src.assistant.Credentials.from_authorized_user_file")
+    def test_call_assistant(self, _mock_creds, mock_text_assistant):
+        """Test the call_assistant method."""
+        # Mock server configuration
+        server_config = {"GOOGLE_API_LANGUAGE": "en-US"}
 
-        server_config = {"GOOGLE_API_LANGUAGE": "de-DE"}
-        init_assistant(server_config)
-
-        mock_credentials.assert_called_once_with("token.json")
-        # assert the TextAssistant is initialized with the correct parameters
-        mock_text_assistant.assert_called_once_with(
-            mock_credentials.return_value,
-            server_config["GOOGLE_API_LANGUAGE"],
-            display=True,
-        )
-
-    @patch("src.assistant.TEXT_ASSISTANT")
-    def test_call_assistant(self, mock_text_assistant):
-        """Test sending a command to the Google Assistant."""
-        mock_text_assistant.assist.return_value = (
+        # Mock TextAssistant behavior
+        mock_text_assistant_instance = mock_text_assistant.return_value
+        mock_text_assistant_instance.assist.return_value = (
             "",
             b'<div class="show_text_content">Test Response</div>',
         )
 
-        response = call_assistant("Test Command")
+        # Initialize GoogleAssistant
+        assistant = GoogleAssistant(server_config)
 
+        # Call the assistant
+        response = assistant.call_assistant("Test Command")
+
+        # Assert the response
         self.assertEqual(response, "Test Response")
+        mock_text_assistant_instance.assist.assert_called_once_with("Test Command")
 
 
 if __name__ == "__main__":

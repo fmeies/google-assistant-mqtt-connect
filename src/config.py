@@ -1,9 +1,9 @@
 """
-Provides configuration logic
+Provides configuration logic for the application.
 """
 
-import logging
 import json
+import logging
 
 # Configuration file paths
 SERVER_CONFIG_PATH = ".env"
@@ -12,39 +12,44 @@ MQTT_CONFIG_PATH = "mqtt_config.json"
 # Logger setup
 logger = logging.getLogger(__name__)
 
-server_config = {}
-mqtt_config = {}
 
+class Config:
+    """Handles loading and validation of server and MQTT configurations."""
 
-def init_config() -> tuple:
-    """Initialize the configuration by loading from files."""
-    # Load server configuration
-    load_config(server_config, SERVER_CONFIG_PATH)
-
-    # Load MQTT configuration
-    load_config(mqtt_config, MQTT_CONFIG_PATH)
-
-    # Validate configurations
-    if not all(
-        [
-            server_config.get("MQTT_CLIENT_ID"),
-            server_config.get("MQTT_SERVER"),
-            server_config.get("MQTT_PORT"),
-            server_config.get("MQTT_TOPIC"),
-        ]
+    def __init__(
+        self, server_config_path=SERVER_CONFIG_PATH, mqtt_config_path=MQTT_CONFIG_PATH
     ):
-        raise ValueError(
-            "MQTT configuration is incomplete. Please check your .env file."
-        )
+        self.server_config_path = server_config_path
+        self.mqtt_config_path = mqtt_config_path
+        self.server_config = {}
+        self.mqtt_config = {}
+        self._load_configs()
+        self._validate_configs()
 
-    return server_config, mqtt_config
+    def _load_configs(self):
+        """Load server and MQTT configurations from files."""
+        try:
+            with open(self.server_config_path, "r", encoding="utf-8") as server_file:
+                self.server_config = json.load(server_file)
+            with open(self.mqtt_config_path, "r", encoding="utf-8") as mqtt_file:
+                self.mqtt_config = json.load(mqtt_file)
+        except Exception as e:
+            logger.error("Error loading configuration files: %s", e)
+            raise ValueError("Failed to load configuration files") from e
 
+    def _validate_configs(self):
+        """Validate the loaded configurations."""
+        required_keys = ["MQTT_CLIENT_ID", "MQTT_SERVER", "MQTT_PORT", "MQTT_TOPIC"]
+        missing_keys = [key for key in required_keys if key not in self.server_config]
+        if missing_keys:
+            raise ValueError(
+                f"Missing required server configuration keys: {missing_keys}"
+            )
 
-def load_config(config, path) -> None:
-    """Load the configuration from a file."""
-    try:
-        with open(path, "r", encoding="utf-8") as config_file:
-            config.clear()
-            config.update(json.load(config_file))
-    except Exception as e:
-        logger.error("Error loading config from %s: %s", path, e)
+    def get_server_config(self):
+        """Return the server configuration."""
+        return self.server_config
+
+    def get_mqtt_config(self):
+        """Return the MQTT configuration."""
+        return self.mqtt_config

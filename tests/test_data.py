@@ -1,16 +1,22 @@
+"""Unit tests for the DataUpdater class and its data update logic."""
+
 import unittest
 from unittest.mock import patch, MagicMock
+from typing import Any, Dict
+
 from src.data import DataUpdater
 
 
 class TestDataUpdater(unittest.TestCase):
-    def test_update_data(self):
+    """Test cases for the DataUpdater class."""
+
+    def test_update_data(self) -> None:
         """Test the update_data method."""
         # Mock assistant and MQTT configuration
-        mock_assistant = MagicMock()
+        mock_assistant: MagicMock = MagicMock()
         mock_assistant.call_assistant.side_effect = ["Result: 1", "Value: TestValue"]
 
-        mock_mqtt_config = {
+        mock_mqtt_config: Dict[str, Any] = {
             "publish": {
                 "key1": {
                     "command": "Test Command 1",
@@ -26,10 +32,10 @@ class TestDataUpdater(unittest.TestCase):
         }
 
         # Initialize DataUpdater
-        data_updater = DataUpdater(mock_assistant, mock_mqtt_config)
+        data_updater: DataUpdater = DataUpdater(mock_assistant, mock_mqtt_config)
 
         # Call update_data
-        data = data_updater.update_data()
+        data: Dict[str, Any] = data_updater.update_data()
 
         # Assert data cache updates
         self.assertEqual(data["key1"], "Success")
@@ -43,13 +49,13 @@ class TestDataUpdater(unittest.TestCase):
         self.assertEqual(mock_assistant.call_assistant.call_count, 2)
 
     @patch("src.data.logger")
-    def test_update_data_error_handling(self, mock_logger):
+    def test_update_data_error_handling(self, mock_logger: MagicMock) -> None:
         """Test the update_data method."""
         # Mock call_assistant to raise an exception
-        mock_assistant = MagicMock()
+        mock_assistant: MagicMock = MagicMock()
         mock_assistant.call_assistant.side_effect = Exception("Test error")
 
-        mock_mqtt_config = {
+        mock_mqtt_config: Dict[str, Any] = {
             "publish": {
                 "key1": {
                     "command": "Test Command 1",
@@ -60,10 +66,10 @@ class TestDataUpdater(unittest.TestCase):
         }
 
         # Initialize DataUpdater
-        data_updater = DataUpdater(mock_assistant, mock_mqtt_config)
+        data_updater: DataUpdater = DataUpdater(mock_assistant, mock_mqtt_config)
 
         # Call update_data
-        data = data_updater.update_data()
+        data: Dict[str, Any] = data_updater.update_data()
 
         # Assert that the error was logged
         mock_logger.error.assert_called_once()

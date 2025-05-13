@@ -7,4 +7,5 @@ cachetools
 pytest
 pylint
 black
+mypy
 parameterized

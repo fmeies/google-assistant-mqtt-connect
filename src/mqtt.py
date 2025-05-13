@@ -5,7 +5,10 @@ This module provides functionality to interact with an MQTT broker.
 import logging
 import datetime
 import json
+from typing import Any, Dict
 import paho.mqtt.client as pahomqtt
+
+from src.assistant import GoogleAssistant
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +16,21 @@ logger = logging.getLogger(__name__)
 class MQTTClient:
     """Encapsulates the MQTT client logic."""
 
-    def __init__(self, assistant, server_config, mqtt_config):
+    assistant: GoogleAssistant
+    server_config: Dict[str, Any]
+    mqtt_config: Dict[str, Any]
+    client: pahomqtt.Client
+
+    def __init__(
+        self,
+        assistant: GoogleAssistant,
+        server_config: Dict[str, Any],
+        mqtt_config: Dict[str, Any],
+    ) -> None:
         self.assistant = assistant
         self.server_config = server_config
         self.mqtt_config = mqtt_config
-        self.client = None
+        self.client = pahomqtt.Client(protocol=pahomqtt.MQTTv311)
 
         # Initialize the MQTT client during object creation
         self._initialize_client()
@@ -31,7 +44,6 @@ class MQTTClient:
         user_name = self.server_config.get("MQTT_USERNAME")
         password = self.server_config.get("MQTT_PASSWORD")
 
-        self.client = pahomqtt.Client(protocol=pahomqtt.MQTTv311)
         if user_name and password:
             self.client.username_pw_set(user_name, password)
         self.client.user_data_set(client_id)
@@ -69,7 +81,7 @@ class MQTTClient:
         except Exception as e:
             logger.error("Error processing command: %s", e)
 
-    def publish_to_mqtt(self, data) -> None:
+    def publish_to_mqtt(self, data: Dict[str, Any]) -> None:
         """Publish the data to the MQTT topic."""
         topic = self.server_config.get("MQTT_TOPIC")
         payload = {

@@ -5,8 +5,9 @@ This module provides functionality to interact with the Google Assistant API.
 
 import logging
 import re
-from google.oauth2.credentials import Credentials  # Third-party library
-from gassist_text import TextAssistant  # Local import
+from typing import Any, Dict
+from google.oauth2.credentials import Credentials
+from gassist_text import TextAssistant  # type: ignore
 
 OAUTH2_TOKEN_PATH = "token.json"
 DEFAULT_LANGUAGE = "en-US"
@@ -18,18 +19,20 @@ logger = logging.getLogger(__name__)
 class GoogleAssistant:
     """Encapsulates the Google Assistant API logic."""
 
-    def __init__(self, server_config):
+    text_assistant: TextAssistant
+
+    def __init__(self, server_config: Dict[str, Any]) -> None:
         """Initialize the Google Assistant."""
         creds = Credentials.from_authorized_user_file(OAUTH2_TOKEN_PATH)
         lang = server_config.get("GOOGLE_API_LANGUAGE", DEFAULT_LANGUAGE)
         self.text_assistant = TextAssistant(creds, lang, display=True)
 
-    def _extract_response(self, response):
+    def _extract_response(self, response: str) -> str:
         """Extract the relevant part of the response from the Google Assistant."""
         match = re.search(r'<div class="show_text_content">(.*?)</div>', response)
         return match.group(1) if match else "No valid response found."
 
-    def call_assistant(self, command):
+    def call_assistant(self, command: str) -> str:
         """Send a command to the Google Assistant and process the response."""
         logger.info("Sending command to Google Assistant: %s", command)
 

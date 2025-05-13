@@ -5,11 +5,12 @@ Main entry point for the application.
 import logging
 import threading
 import time
+from typing import Any, Dict
 
-from .config import Config
-from .mqtt import MQTTClient
-from .assistant import GoogleAssistant
-from .data import DataUpdater
+from src.config import Config
+from src.mqtt import MQTTClient
+from src.assistant import GoogleAssistant
+from src.data import DataUpdater
 
 DEFAULT_GOOGLE_API_RELOAD_INTERVAL = 300
 
@@ -24,11 +25,18 @@ logger = logging.getLogger(__name__)
 
 # pylint: disable=R0903
 class MainApplication:
-    """Encapsulates the main application logic."""
+    """Main application class for Google Assistant MQTT Connect."""
 
-    def __init__(self):
-        """Initialize the application."""
-        self.config = Config()  # Load and validate configurations
+    config: Config
+    server_config: Dict[str, Any]
+    mqtt_config: Dict[str, Any]
+    assistant: GoogleAssistant
+    data_updater: DataUpdater
+    mqtt_client: MQTTClient
+
+    def __init__(self) -> None:
+        """Initialize the application and its dependencies."""
+        self.config = Config()
         self.server_config = self.config.get_server_config()
         self.mqtt_config = self.config.get_mqtt_config()
         self.assistant = GoogleAssistant(self.server_config)
@@ -63,7 +71,7 @@ class MainApplication:
         self.mqtt_client.publish_to_mqtt(data)
 
     def run(self) -> None:
-        """Run the main application."""
+        """Run the main application loop."""
         # Start the update and publish thread
         threading.Thread(target=self._update_loop, daemon=True).start()
 

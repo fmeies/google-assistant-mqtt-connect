@@ -1,15 +1,23 @@
+"""Unit tests for the GoogleAssistant class and assistant interaction."""
+
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from typing import Any, Dict
+
 from src.assistant import GoogleAssistant
 
 
 class TestGoogleAssistant(unittest.TestCase):
+    """Test cases for the GoogleAssistant class."""
+
     @patch("src.assistant.TextAssistant")
     @patch("src.assistant.Credentials.from_authorized_user_file")
-    def test_call_assistant(self, _mock_creds, mock_text_assistant):
+    def test_call_assistant(
+        self, _mock_creds: MagicMock, mock_text_assistant: MagicMock
+    ) -> None:
         """Test the call_assistant method."""
         # Mock server configuration
-        server_config = {"GOOGLE_API_LANGUAGE": "en-US"}
+        server_config: Dict[str, Any] = {"GOOGLE_API_LANGUAGE": "en-US"}
 
         # Mock TextAssistant behavior
         mock_text_assistant_instance = mock_text_assistant.return_value
@@ -22,7 +30,7 @@ class TestGoogleAssistant(unittest.TestCase):
         assistant = GoogleAssistant(server_config)
 
         # Call the assistant
-        response = assistant.call_assistant("Test Command")
+        response: str = assistant.call_assistant("Test Command")
 
         # Assert the response
         self.assertEqual(response, "Test Response")

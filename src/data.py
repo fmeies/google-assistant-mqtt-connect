@@ -6,6 +6,9 @@ import logging
 import datetime
 import time
 import re
+from typing import Any, Dict
+
+from src.assistant import GoogleAssistant
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +17,11 @@ logger = logging.getLogger(__name__)
 class DataUpdater:
     """Handles the data update process for the Google Assistant integration."""
 
-    def __init__(self, assistant, mqtt_config):
+    assistant: GoogleAssistant
+    mqtt_config: Dict[str, Any]
+    data_cache: Dict[str, Any]
+
+    def __init__(self, assistant: GoogleAssistant, mqtt_config: Dict[str, Any]) -> None:
         self.assistant = assistant
         self.mqtt_config = mqtt_config
         self.data_cache = {
@@ -24,7 +31,7 @@ class DataUpdater:
             "sdk_calls_today_date": None,
         }
 
-    def update_data(self) -> dict:
+    def update_data(self) -> Dict[str, Any]:
         """Update the status cache by querying the Google Assistant
         and publishing the results to MQTT."""
         logger.info("Starting data update...")

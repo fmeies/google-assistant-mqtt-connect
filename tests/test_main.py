@@ -1,9 +1,16 @@
+"""Unit tests for the MainApplication class and its update/publish logic."""
+
 import unittest
 from unittest.mock import patch, MagicMock
-from parameterized import parameterized
+from typing import Any, Dict
+from parameterized import parameterized  # type: ignore
+
 from src.main import MainApplication
 
+
 class TestMainApplication(unittest.TestCase):
+    """Test cases for MainApplication's update_and_publish_data method."""
+
     @parameterized.expand(
         [
             ("not_in_pause_hours", {"REQUEST_PAUSE_HOURS": [2, 3]}, 1, True),
@@ -12,13 +19,23 @@ class TestMainApplication(unittest.TestCase):
             ("pause_hours_empty_array", {"REQUEST_PAUSE_HOURS": []}, 15, True),
         ]
     )
-    def test_update_and_publish_data(self, _name, server_config, current_hour, should_update):
+    def test_update_and_publish_data(
+        self,
+        _name: str,
+        server_config: Dict[str, Any],
+        current_hour: int,
+        should_update: bool,
+    ) -> None:
         """Test the update_and_publish_data method."""
-        with patch("src.main.Config") as mock_config, \
-             patch("src.main.GoogleAssistant") as _mock_google_assistant, \
-             patch("src.main.DataUpdater") as mock_data_updater, \
-             patch("src.main.MQTTClient") as mock_mqtt_client, \
-             patch("src.main.time.localtime", return_value=MagicMock(tm_hour=current_hour)):
+        with patch("src.main.Config") as mock_config, patch(
+            "src.main.GoogleAssistant"
+        ) as _mock_google_assistant, patch(
+            "src.main.DataUpdater"
+        ) as mock_data_updater, patch(
+            "src.main.MQTTClient"
+        ) as mock_mqtt_client, patch(
+            "src.main.time.localtime", return_value=MagicMock(tm_hour=current_hour)
+        ):
 
             # Mock Config
             mock_config_instance = mock_config.return_value
@@ -50,6 +67,7 @@ class TestMainApplication(unittest.TestCase):
                 mock_mqtt_client_instance.publish_to_mqtt.assert_called_once_with(
                     {"key": "cached_value"}
                 )
+
 
 if __name__ == "__main__":
     unittest.main()

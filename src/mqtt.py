@@ -81,19 +81,20 @@ class MQTTClient:
         except RuntimeError as e:
             logger.error("Error processing command: %s", e)
 
+    @staticmethod
+    def format_date(timestamp: float) -> str:
+        """Format the timestamp as a string."""
+        return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+
     def publish_to_mqtt(self, data: Dict[str, Any]) -> None:
         """Publish the data to the MQTT topic."""
         topic = self.server_config.get("MQTT_TOPIC")
         payload = {
             "sdk_calls_today": int(data["sdk_calls_today"]),
             "error": data["error"],
-            "timestamp": (
-                datetime.datetime.fromtimestamp(data["timestamp"]).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+            "timestamp": self.format_date(data["timestamp"])
                 if data["timestamp"]
                 else None
-            ),
         }
         for key, _value in self.mqtt_config.get("publish", {}).items():
             # check if the key is in the data

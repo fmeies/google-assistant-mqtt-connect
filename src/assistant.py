@@ -7,7 +7,7 @@ import logging
 import re
 from typing import Any, Dict
 from google.oauth2.credentials import Credentials # pylint: disable=import-error
-from gassist_text import TextAssistant  # pylint: disable=import-error
+from gassist_text import TextAssistant  # type: ignore  # pylint: disable=import-error
 
 OAUTH2_TOKEN_PATH = "token.json"
 DEFAULT_LANGUAGE = "en-US"

@@ -25,10 +25,12 @@ class TestMQTTClient(unittest.TestCase):
         mock_mqtt_config: Dict[str, Any] = {
             "publish": {"key1": "value1", "key2": "value2"}
         }
+
+        some_timestamp = 1672531200
         data: Dict[str, Any] = {
             "sdk_calls_today": 5,
             "error": "",
-            "timestamp": 1672531200,
+            "timestamp": some_timestamp,
             "key1": "value1",
             "key2": "value2",
         }
@@ -45,7 +47,7 @@ class TestMQTTClient(unittest.TestCase):
         expected_payload: Dict[str, Any] = {
             "sdk_calls_today": 5,
             "error": "",
-            "timestamp": "2023-01-01 01:00:00",
+            "timestamp": MQTTClient.format_date(some_timestamp),
             "key1": "value1",
             "key2": "value2",
         }

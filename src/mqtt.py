@@ -6,7 +6,7 @@ import logging
 import datetime
 import json
 from typing import Any, Dict
-import paho.mqtt.client as pahomqtt
+import paho.mqtt.client as pahomqtt # pylint: disable=import-error
 
 from src.assistant import GoogleAssistant
 

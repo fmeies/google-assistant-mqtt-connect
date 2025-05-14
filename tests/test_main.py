@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from typing import Any, Dict
-from parameterized import parameterized  # type: ignore
+from parameterized import parameterized  # pylint: disable=import-error
 
 from src.main import MainApplication
 

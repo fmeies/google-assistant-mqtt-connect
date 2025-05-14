@@ -53,7 +53,7 @@ class TestDataUpdater(unittest.TestCase):
         """Test the update_data method."""
         # Mock call_assistant to raise an exception
         mock_assistant: MagicMock = MagicMock()
-        mock_assistant.call_assistant.side_effect = Exception("Test error")
+        mock_assistant.call_assistant.side_effect = RuntimeError("Test error")
 
         mock_mqtt_config: Dict[str, Any] = {
             "publish": {

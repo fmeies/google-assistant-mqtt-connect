@@ -78,7 +78,7 @@ class MQTTClient:
 
         try:
             self.assistant.call_assistant(command)
-        except Exception as e:
+        except RuntimeError as e:
             logger.error("Error processing command: %s", e)
 
     def publish_to_mqtt(self, data: Dict[str, Any]) -> None:
@@ -103,5 +103,5 @@ class MQTTClient:
         try:
             self.client.publish(f"{topic}/stat", payload_json)
             logger.info("Published payload to topic: %s/stat", topic)
-        except Exception as e:
+        except ValueError as e:
             logger.error("Failed to publish to topic %s/stat: %s", topic, e)

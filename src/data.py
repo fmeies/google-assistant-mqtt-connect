@@ -67,7 +67,7 @@ class DataUpdater:
                 self.data_cache["sdk_calls_today"] += counter
 
             logger.info("Data update completed successfully.")
-        except Exception as e:
+        except RuntimeError as e:
             logger.error("Error updating status cache: %s", e)
             self.data_cache["error"] = re.sub(r"[\n\t]", "", str(e))
             self.data_cache["timestamp"] = time.time()

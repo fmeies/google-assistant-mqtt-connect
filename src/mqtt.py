@@ -6,7 +6,7 @@ import logging
 import datetime
 import json
 from typing import Any, Dict
-import paho.mqtt.client as pahomqtt # pylint: disable=import-error
+import paho.mqtt.client as pahomqtt  # pylint: disable=import-error
 
 from src.assistant import GoogleAssistant
 
@@ -92,9 +92,9 @@ class MQTTClient:
         payload = {
             "sdk_calls_today": int(data["sdk_calls_today"]),
             "error": data["error"],
-            "timestamp": self.format_date(data["timestamp"])
-                if data["timestamp"]
-                else None
+            "timestamp": (
+                self.format_date(data["timestamp"]) if data["timestamp"] else None
+            ),
         }
         for key, _value in self.mqtt_config.get("publish", {}).items():
             # check if the key is in the data

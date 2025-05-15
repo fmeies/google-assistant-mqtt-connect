@@ -6,7 +6,7 @@ This module provides functionality to interact with the Google Assistant API.
 import logging
 import re
 from typing import Any, Dict
-from google.oauth2.credentials import Credentials # pylint: disable=import-error
+from google.oauth2.credentials import Credentials  # pylint: disable=import-error
 from gassist_text import TextAssistant  # type: ignore  # pylint: disable=import-error
 
 OAUTH2_TOKEN_PATH = "token.json"

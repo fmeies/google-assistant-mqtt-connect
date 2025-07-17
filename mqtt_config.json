@@ -6,7 +6,8 @@
             "result_map": { 
                 "is running": "Run",
                 "is paused": "Pause",
-                "isn't running": "Dock"
+                "isn't running": "Dock",
+                "is docked": "Dock"
             }
         },
         "navimow_battery_status": { 

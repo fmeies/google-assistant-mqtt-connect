@@ -19,13 +19,19 @@ logger = logging.getLogger(__name__)
 class GoogleAssistant:
     """Encapsulates the Google Assistant API logic."""
 
+    creds: Credentials
+    lang: str
     text_assistant: TextAssistant
 
     def __init__(self, server_config: Dict[str, Any]) -> None:
         """Initialize the Google Assistant."""
-        creds = Credentials.from_authorized_user_file(OAUTH2_TOKEN_PATH)
-        lang = server_config.get("GOOGLE_API_LANGUAGE", DEFAULT_LANGUAGE)
-        self.text_assistant = TextAssistant(creds, lang, display=True)
+        self.creds = Credentials.from_authorized_user_file(OAUTH2_TOKEN_PATH)
+        self.lang = server_config.get("GOOGLE_API_LANGUAGE", DEFAULT_LANGUAGE)
+        self._init_text_assistant()
+
+    def _init_text_assistant(self) -> None:
+        """Initialize the Text Assistant with the current credentials and language."""
+        self.text_assistant = TextAssistant(self.creds, self.lang, display=True)
 
     def _extract_response(self, response: str) -> str:
         """Extract the relevant part of the response from the Google Assistant."""
@@ -47,4 +53,5 @@ class GoogleAssistant:
             return response
         except Exception as e:
             logger.error("Error while sending command to Google Assistant: %s", e)
-            raise RuntimeError("Assistant error") from e
+            self._init_text_assistant()
+            raise RuntimeError("Assistant error. Re-init Text Assistant") from e

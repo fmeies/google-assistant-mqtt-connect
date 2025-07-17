@@ -59,7 +59,9 @@ class MainApplication:
         """Update the data and publish it to MQTT."""
         request_pause = self.server_config.get("REQUEST_PAUSE_HOURS", [])
         current_hour = time.localtime().tm_hour
-        if current_hour not in request_pause:
+        # Check if we've actually fetched data before
+        is_first_run = self.data_updater.data_cache.get("sdk_calls_today") == 0
+        if current_hour not in request_pause or is_first_run:
             data = self.data_updater.update_data()
         else:
             logger.info(

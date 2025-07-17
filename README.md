@@ -51,3 +51,13 @@ You can run the tests with the following command.
 ```
 pytest -v
 ```
+
+## Run the linter and other code quality tools
+
+You can run additional code quality tools with the following commands.
+
+```
+pylint src tests run.py
+mypy src tests
+black src tests run.py
+```

@@ -20,10 +20,10 @@ Follow the instructions in the [Google Assistant SDK Home Assistant Integration]
 
 ## Create a token.json file from the secrets file
 
-The following step will open a browser window to authenticate your Google account. You will need to log in with the same account you used to create the client ID and client secret. After you have logged in, you will be asked to allow the application to access your Google Assistant. After you have allowed the application, a token.json file will be created in the root directory of the project.
+The following step will open a browser window to authenticate your Google account. You will need to log in with the same account you used to create the client ID and client secret. After you have logged in, you will be asked to allow the application to access your Google Assistant. After you have allowed the application, paste the console output into a file named `token.json` located in the root directory of the project. This file will be used to authenticate the connector with the Google Assistant API.
 
 ```
-python3 -m google_auth_oauthlib.tool --client-secrets client_secret.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype > token.json
+python3 -m google_auth_oauthlib.tool --client-secrets client_secret.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype
 ```
 
 ## Adjust the server configuration
@@ -61,3 +61,5 @@ pylint src tests run.py
 mypy src tests
 black src tests run.py
 ```
+
+Do you have a token.json in the root directory of the project? If not, please follow the instructions in README to create one.

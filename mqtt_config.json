@@ -1,18 +1,18 @@
 {
     "publish": {
-        "navimow_running_status": { 
-            "command": "Is Navimow i105 running?", 
-            "regex": ".*105 (.*)\\.", 
-            "result_map": { 
+        "navimow_running_status": {
+            "command": "what is Navimow i105 doing",
+            "regex": ".*105 (.*)\\.",
+            "result_map": {
                 "is running": "Run",
                 "is paused": "Pause",
                 "isn't running": "Dock",
                 "is docked": "Dock"
             }
         },
-        "navimow_battery_status": { 
-            "command": "Navimow i105 battery level?", 
-            "regex": "([0-9]+) *percent" 
+        "navimow_battery_status": {
+            "command": "what is Navimow i105 battery level",
+            "regex": "([0-9]+) *percent"
         }
     },
     "subscribe": {

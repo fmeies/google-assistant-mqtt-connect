@@ -32,7 +32,7 @@ Copy the `env_example` file to `.env` and adjust the values to your needs. Pleas
 
 ## Adjust the mqtt configuration
 
-Have a look at the `mqtt_config.json` file. You can adjust the configuration to your needs. Status messages are sent to the `stat` subtopic of the configured main topic. The connector subscribes to the `cmnd` subtopic of the main topic.
+Have a look at the `mqtt_config.json` file. You can adjust the configuration to your needs. Status messages are sent to the `stat` subtopic of the configured main topic (default is `google_assitant`). The connector subscribes to the `cmnd` subtopic of the main topic.
 
 ## Run the connector
 
@@ -63,3 +63,21 @@ black src tests run.py
 ```
 
 Do you have a token.json in the root directory of the project? If not, please follow the instructions in README to create one.
+
+## How to use the connector
+
+Example 1: status message sent to `google_assistant/stat/#`
+
+```json
+{
+	"sdk_calls_today": 12,
+	"error": "",
+	"timestamp": "2025-07-20 16:56:41",
+	"navimow_running_status": "Dock",
+	"navimow_battery_status": "100"
+}
+```
+
+Example 2: to start the mower, publish a message to the `google_assistant/cmnd/navimow_running` topic with the payload `Run`.
+
+Example 3: to send the mower to the dock, publish a message to the `google_assistant/cmnd/navimow_running` topic with the payload `Dock`.

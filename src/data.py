@@ -44,12 +44,15 @@ class DataUpdater:
                 result_map = value.get("result_map", {})
                 answer = self.assistant.call_assistant(command)
                 regex = re.compile(regex_str)
-                match = re.search(regex, answer)
-                counter += 1
-                if match:
-                    result = match.group(1)
+                if answer is not None:
+                    match = re.search(regex, answer)
+                    counter += 1
+                    if match:
+                        result = match.group(1)
+                    else:
+                        result = "No valid response found."
                 else:
-                    result = "No valid response found."
+                    result = "No answer received."
                 if result in result_map:
                     self.data_cache[key] = result_map[result]
                 else:
@@ -67,7 +70,8 @@ class DataUpdater:
                 self.data_cache["sdk_calls_today"] += counter
 
             logger.info("Data update completed successfully.")
-        except RuntimeError as e:
+        # pylint: disable=broad-except
+        except Exception as e:
             logger.error("Error updating status cache: %s", e)
             self.data_cache["error"] = re.sub(r"[\n\t]", "", str(e))
             self.data_cache["timestamp"] = time.time()

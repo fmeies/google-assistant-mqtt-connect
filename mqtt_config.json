@@ -5,6 +5,7 @@
             "regex": ".*105 (.*)\\.",
             "result_map": {
                 "is running": "Run",
+                "isn't docked": "Run",
                 "is paused": "Pause",
                 "isn't running": "Dock",
                 "is docked": "Dock"

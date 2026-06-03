@@ -1,3 +1,4 @@
+.claude
 .venv
 .vscode
 pyvenv.cfg
@@ -5,3 +6,4 @@ token.json
 *secret.json
 .env
 __pycache__
+.DS_Store

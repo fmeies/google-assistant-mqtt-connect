@@ -2,8 +2,12 @@
 .venv
 .vscode
 pyvenv.cfg
-token.json
-*secret.json
-.env
 __pycache__
 .DS_Store
+
+# Secrets and local config, never commit
+token.json
+*secret*.json
+/server_config.json
+.env
+config/

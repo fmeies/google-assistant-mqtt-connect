@@ -3,6 +3,7 @@ Main entry point for the application.
 """
 
 import logging
+import signal
 import threading
 import time
 from typing import Any, Dict
@@ -74,6 +75,8 @@ class MainApplication:
 
     def run(self) -> None:
         """Run the main application loop."""
+        # As PID 1 in a container, Python would otherwise ignore `docker stop`
+        signal.signal(signal.SIGTERM, signal.default_int_handler)
         # Start the update and publish thread
         threading.Thread(target=self._update_loop, daemon=True).start()
 
@@ -82,6 +85,8 @@ class MainApplication:
                 time.sleep(1)
         except KeyboardInterrupt:
             logger.info("Shutting down...")
+        finally:
+            self.mqtt_client.disconnect()
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ class TestGoogleAssistant(unittest.TestCase):
         mock_text_assistant_instance.assist.return_value = (
             "",
             b'<div class="show_text_content">Test Response</div>',
+            b"",
         )
 
         # Initialize GoogleAssistant
@@ -52,6 +53,7 @@ class TestGoogleAssistant(unittest.TestCase):
             (
                 "",
                 b'<div class="show_text_content">Success after retry</div>',
+                b"",
             ),  # Second call succeeds
         ]
 
@@ -70,6 +72,26 @@ class TestGoogleAssistant(unittest.TestCase):
 
         # Verify the original exception was properly logged
         # This requires patching the logger in your implementation
+
+    @patch("src.assistant.TextAssistant")
+    @patch("src.assistant.Credentials.from_authorized_user_file")
+    def test_call_assistant_without_html_returns_none(
+        self, _mock_creds: MagicMock, mock_text_assistant: MagicMock
+    ) -> None:
+        """No HTML response maps to None, which DataUpdater reports as no answer."""
+        mock_text_assistant.return_value.assist.return_value = ("text", None, b"")
+
+        self.assertIsNone(GoogleAssistant({}).call_assistant("Test Command"))
+
+    @patch.dict("os.environ", {"CONFIG_DIR": "/config"})
+    @patch("src.assistant.TextAssistant")
+    @patch("src.assistant.Credentials.from_authorized_user_file")
+    def test_token_is_read_from_config_dir(
+        self, mock_creds: MagicMock, _mock_text_assistant: MagicMock
+    ) -> None:
+        """The OAuth token is loaded from CONFIG_DIR like the other config files."""
+        GoogleAssistant({})
+        mock_creds.assert_called_once_with("/config/token.json")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+name: Test
+
+on:
+  push:
+    # main is tested by the Docker workflow, which gates publishing on this one
+    branches-ignore: [main]
+  pull_request:
+  # Lets the Docker workflow gate publishing on the tests
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint with flake8
+        run: |
+          flake8 --count --select=E9,F63,F7,F82 --show-source --statistics src tests run.py
+          flake8 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics src tests run.py
+
+      - name: Lint with pylint
+        run: pylint $(git ls-files '*.py')
+
+      - name: Check formatting with black
+        run: black --check src/ tests/ run.py
+
+      - name: Type check with mypy
+        run: mypy src/
+
+      - name: Test with pytest
+        run: pytest

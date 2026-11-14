@@ -4,8 +4,3 @@ google-auth-oauthlib
 google-assistant-sdk
 paho-mqtt
 cachetools
-pytest
-pylint
-black
-mypy
-parameterized

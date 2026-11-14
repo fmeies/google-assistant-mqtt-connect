@@ -116,6 +116,24 @@ class TestMQTTClient(unittest.TestCase):
             "Received command not in subscribed commands: %s", "InvalidCommand"
         )
 
+    @patch("paho.mqtt.client.Client")
+    def test_disconnect_closes_connection_and_stops_loop(
+        self, mock_paho_client: MagicMock
+    ) -> None:
+        """disconnect() lets the broker see a clean disconnect, not a dropped link."""
+        server_config: Dict[str, Any] = {
+            "MQTT_TOPIC": "test/topic",
+            "MQTT_CLIENT_ID": "test_id",
+            "MQTT_SERVER": "localhost",
+            "MQTT_PORT": 1883,
+        }
+        mqtt_client = MQTTClient(MagicMock(), server_config, {})
+
+        mqtt_client.disconnect()
+
+        mock_paho_client.return_value.disconnect.assert_called_once()
+        mock_paho_client.return_value.loop_stop.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

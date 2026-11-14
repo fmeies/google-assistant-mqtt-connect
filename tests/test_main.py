@@ -1,5 +1,6 @@
 """Unit tests for the MainApplication class and its update/publish logic."""
 
+import signal
 import unittest
 from unittest.mock import patch, MagicMock
 from typing import Any, Dict
@@ -67,6 +68,29 @@ class TestMainApplication(unittest.TestCase):
                 mock_mqtt_client_instance.publish_to_mqtt.assert_called_once_with(
                     {"key": "cached_value"}
                 )
+
+    @patch("src.main.MQTTClient")
+    @patch("src.main.DataUpdater")
+    @patch("src.main.GoogleAssistant")
+    @patch("src.main.Config")
+    @patch("src.main.threading.Thread")
+    @patch("src.main.signal.signal")
+    @patch("src.main.time.sleep", side_effect=KeyboardInterrupt)
+    def test_run_handles_sigterm_and_disconnects(  # pylint: disable=too-many-arguments
+        self,
+        _mock_sleep: MagicMock,
+        mock_signal: MagicMock,
+        _mock_thread: MagicMock,
+        _mock_config: MagicMock,
+        _mock_google_assistant: MagicMock,
+        _mock_data_updater: MagicMock,
+        mock_mqtt_client: MagicMock,
+    ) -> None:
+        """SIGTERM ends the app like Ctrl+C, and shutdown closes the MQTT connection."""
+        MainApplication().run()
+
+        mock_signal.assert_called_once_with(signal.SIGTERM, signal.default_int_handler)
+        mock_mqtt_client.return_value.disconnect.assert_called_once()
 
 
 if __name__ == "__main__":

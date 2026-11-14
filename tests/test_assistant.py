@@ -71,6 +71,16 @@ class TestGoogleAssistant(unittest.TestCase):
         # Verify the original exception was properly logged
         # This requires patching the logger in your implementation
 
+    @patch.dict("os.environ", {"CONFIG_DIR": "/config"})
+    @patch("src.assistant.TextAssistant")
+    @patch("src.assistant.Credentials.from_authorized_user_file")
+    def test_token_is_read_from_config_dir(
+        self, mock_creds: MagicMock, _mock_text_assistant: MagicMock
+    ) -> None:
+        """The OAuth token is loaded from CONFIG_DIR like the other config files."""
+        GoogleAssistant({})
+        mock_creds.assert_called_once_with("/config/token.json")
+
 
 if __name__ == "__main__":
     unittest.main()

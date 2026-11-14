@@ -6,63 +6,91 @@ This connector allows you to control your devices using mqtt to make it easier t
 
 As a proof of concept, I added a simple configuration to control a Segway Navimow i105 mower. If your device has a Google Home integration, there's a good chance that this connector will work for you as well.
 
-## Create a virtual environment and install the required packages
+## Configuration files
+
+> **Upgrading from an older version?** The config files moved from the project root to `config/`, and `.env` is now `server_config.json` (same content):
+> `mkdir -p config && mv .env config/server_config.json && mv token.json config/` — then copy your `mqtt_config.json` to `config/` (the repo version moved to `config.example/`).
+
+The connector reads three files from the `config/` directory. They contain secrets or local settings, so the whole directory is **never committed** (see `.gitignore`). Start from the templates:
+
+```
+cp -r config.example config
+```
+
+```
+config/
+├── server_config.json   # MQTT connection, API interval, language, pause hours
+├── mqtt_config.json     # what to query and which MQTT commands to accept (Navimow example)
+└── token.json           # Google OAuth2 token, created in the next steps
+```
+
+The same directory is used locally and by Docker. A different location can be set with the `CONFIG_DIR` environment variable.
+
+### Create Google Assistant API client ID and client secret
+
+Follow the instructions in the [Google Assistant SDK Home Assistant Integration](https://www.home-assistant.io/integrations/google_assistant_sdk#scenario-2-you-do-not-have-credentials-set-up-yet) to create a Google Assistant API client ID and client secret. Download the `client_secret.json` file.
+
+### Create a token.json file from the secrets file
+
+The following step opens a browser window to authenticate your Google account. Log in with the same account you used to create the client ID and client secret, and allow the application to access your Google Assistant. Then paste the console output into `config/token.json`.
+
+```
+pip3 install google-auth-oauthlib
+python3 -m google_auth_oauthlib.tool --client-secrets client_secret.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype
+```
+
+### Adjust the server configuration
+
+Adjust `config/server_config.json` to your needs. Please note that there is a limitation of 500 calls to the Google Assistant API per day. If you exceed this limit, you will need to wait until the next day to use the connector again. `REQUEST_PAUSE_HOURS` are local hours, so set the container's time zone (see below).
+
+### Adjust the mqtt configuration
+
+Have a look at `config/mqtt_config.json` and adjust it to your needs. Status messages are sent to the `stat` subtopic of the configured main topic (default is `google_assistant`). The connector subscribes to the `cmnd` subtopic of the main topic.
+
+## Run with Docker Compose (recommended)
+
+With the `config/` directory next to `docker-compose.yml`:
+
+```bash
+docker compose pull && docker compose up -d   # prebuilt image from GHCR
+docker compose logs -f
+
+# Testing local changes: build under the same tag, then start without pulling
+docker build -t ghcr.io/fmeies/google-assistant-mqtt-connect:latest .
+docker compose up -d --pull never
+```
+
+The config directory is mounted read-only; no credentials are baked into the image. The time zone defaults to `Europe/Berlin` and can be overridden with `TZ=... docker compose up -d`.
+
+## Run with Docker
+
+```bash
+docker run -d --name google-assistant-mqtt-connect --restart unless-stopped \
+  -v "$(pwd)/config:/config:ro" -e TZ=Europe/Berlin \
+  ghcr.io/fmeies/google-assistant-mqtt-connect:latest
+```
+
+Every push to `main` publishes `ghcr.io/fmeies/google-assistant-mqtt-connect:latest` (linux/amd64, linux/arm64 and linux/arm/v7, i.e. also Raspberry Pis with a 32-bit OS) after the tests pass, plus a `sha-<commit>` tag. Git tags `vX.Y.Z` publish matching version tags to pin in production.
+
+## Run locally with Python
 
 ```
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r requirements.txt
-```
-
-## Create Google Assistant API client ID and client secret
-
-Follow the instructions in the [Google Assistant SDK Home Assistant Integration](https://www.home-assistant.io/integrations/google_assistant_sdk#scenario-2-you-do-not-have-credentials-set-up-yet) to create a Google Assistant API client ID and client secret. Download the `client_secret.json` file and place it in the root directory of the project.
-
-## Create a token.json file from the secrets file
-
-The following step will open a browser window to authenticate your Google account. You will need to log in with the same account you used to create the client ID and client secret. After you have logged in, you will be asked to allow the application to access your Google Assistant. After you have allowed the application, paste the console output into a file named `token.json` located in the root directory of the project. This file will be used to authenticate the connector with the Google Assistant API.
-
-```
-python3 -m google_auth_oauthlib.tool --client-secrets client_secret.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype
-```
-
-## Adjust the server configuration
-
-Copy the `env_example` file to `.env` and adjust the values to your needs. Please note that there is a limitation of 500 calls to the Google Assistant API per day. If you exceed this limit, you will need to wait until the next day to use the connector again.
-
-## Adjust the mqtt configuration
-
-Have a look at the `mqtt_config.json` file. You can adjust the configuration to your needs. Status messages are sent to the `stat` subtopic of the configured main topic (default is `google_assitant`). The connector subscribes to the `cmnd` subtopic of the main topic.
-
-## Run the connector
-
-Start the connector with the following command. The connector will run in the foreground and print log messages to the console. You can stop the connector with `Ctrl+C`.
-
-```
+pip3 install -r requirements-dev.txt
 python3 run.py
 ```
 
-Alternatively, you can create a systemd service to run the connector in the background. 
+The connector reads `config/` relative to the working directory. Stop the connector with `Ctrl+C`.
 
-## Run the tests
-
-You can run the tests with the following command.
+## Run the tests and code quality tools
 
 ```
 pytest -v
-```
-
-## Run the linter and other code quality tools
-
-You can run additional code quality tools with the following commands.
-
-```
 pylint src tests run.py
-mypy src tests
+mypy src
 black src tests run.py
 ```
-
-Do you have a token.json in the root directory of the project? If not, please follow the instructions in README to create one.
 
 ## How to use the connector
 

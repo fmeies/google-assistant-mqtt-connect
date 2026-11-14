@@ -4,14 +4,24 @@ Provides configuration logic for the application.
 
 import json
 import logging
-from typing import Any, Dict
+import os
+from typing import Any, Dict, Optional
 
-# Configuration file paths
-SERVER_CONFIG_PATH = ".env"
-MQTT_CONFIG_PATH = "mqtt_config.json"
+# Lets a container mount all config files (including the OAuth token) as one directory
+CONFIG_DIR_ENV_VAR = "CONFIG_DIR"
+DEFAULT_CONFIG_DIR = "config"
+SERVER_CONFIG_FILE = "server_config.json"
+MQTT_CONFIG_FILE = "mqtt_config.json"
+OAUTH2_TOKEN_FILE = "token.json"
 
 # Logger setup
 logger = logging.getLogger(__name__)
+
+
+def config_file_path(filename: str) -> str:
+    """Return the path of a config file inside the configured config directory."""
+    config_dir = os.environ.get(CONFIG_DIR_ENV_VAR, DEFAULT_CONFIG_DIR)
+    return os.path.join(config_dir, filename)
 
 
 class Config:
@@ -23,10 +33,14 @@ class Config:
     mqtt_config: Dict[str, Any]
 
     def __init__(
-        self, server_config_path=SERVER_CONFIG_PATH, mqtt_config_path=MQTT_CONFIG_PATH
+        self,
+        server_config_path: Optional[str] = None,
+        mqtt_config_path: Optional[str] = None,
     ) -> None:
-        self.server_config_path = server_config_path
-        self.mqtt_config_path = mqtt_config_path
+        self.server_config_path = server_config_path or config_file_path(
+            SERVER_CONFIG_FILE
+        )
+        self.mqtt_config_path = mqtt_config_path or config_file_path(MQTT_CONFIG_FILE)
         self.server_config = {}
         self.mqtt_config = {}
         self._load_configs()

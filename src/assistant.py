@@ -9,7 +9,8 @@ from typing import Any, Dict
 from google.oauth2.credentials import Credentials  # pylint: disable=import-error
 from gassist_text import TextAssistant  # type: ignore  # pylint: disable=import-error
 
-OAUTH2_TOKEN_PATH = "token.json"
+from src.config import OAUTH2_TOKEN_FILE, config_file_path
+
 DEFAULT_LANGUAGE = "en-US"
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,9 @@ class GoogleAssistant:
 
     def __init__(self, server_config: Dict[str, Any]) -> None:
         """Initialize the Google Assistant."""
-        self.creds = Credentials.from_authorized_user_file(OAUTH2_TOKEN_PATH)
+        self.creds = Credentials.from_authorized_user_file(
+            config_file_path(OAUTH2_TOKEN_FILE)
+        )
         self.lang = server_config.get("GOOGLE_API_LANGUAGE", DEFAULT_LANGUAGE)
         self._init_text_assistant()
 

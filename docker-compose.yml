@@ -1,0 +1,12 @@
+services:
+  google-assistant-mqtt-connect:
+    # Pull-only on purpose: without build, a failed pull errors out instead of silently
+    # falling back to a local build. To test local changes, see README.
+    image: ghcr.io/fmeies/google-assistant-mqtt-connect:latest
+    volumes:
+      # server_config.json, mqtt_config.json, token.json
+      - ./config:/config:ro
+    # REQUEST_PAUSE_HOURS refers to local hours, the container defaults to UTC
+    environment:
+      TZ: ${TZ:-Europe/Berlin}
+    restart: unless-stopped

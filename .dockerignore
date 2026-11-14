@@ -1,0 +1,6 @@
+# Allowlist: the image gets code only. Secrets and config are mounted at runtime.
+*
+!requirements.txt
+!run.py
+!src/
+**/__pycache__

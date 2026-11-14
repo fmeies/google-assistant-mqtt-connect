@@ -54,6 +54,11 @@ class MQTTClient:
         self.client.subscribe(f"{topic}/cmnd/#")
         self.client.loop_start()
 
+    def disconnect(self) -> None:
+        """Close the broker connection cleanly and stop the network thread."""
+        self.client.disconnect()
+        self.client.loop_stop()
+
     def on_message(self, _client, _userdata, message) -> None:
         """Callback function to handle incoming messages."""
         # Get the topic and payload

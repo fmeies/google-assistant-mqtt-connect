@@ -8,7 +8,8 @@
                 "isn't docked": "Run",
                 "is paused": "Pause",
                 "isn't running": "Dock",
-                "is docked": "Dock"
+                "is docked": "Dock",
+                "isn't available right now": "Offline"
             }
         },
         "navimow_battery_status": {

@@ -70,8 +70,8 @@ class DataUpdater:
                 self.data_cache["sdk_calls_today"] += counter
 
             logger.info("Data update completed successfully.")
-        # pylint: disable=broad-except
-        except Exception as e:
+        # The update thread must survive any failure; the error is published via MQTT
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error("Error updating status cache: %s", e)
             self.data_cache["error"] = re.sub(r"[\n\t]", "", str(e))
             self.data_cache["timestamp"] = time.time()

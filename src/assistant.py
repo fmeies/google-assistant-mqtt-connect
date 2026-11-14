@@ -5,7 +5,7 @@ This module provides functionality to interact with the Google Assistant API.
 
 import logging
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from google.oauth2.credentials import Credentials  # pylint: disable=import-error
 from gassist_text import TextAssistant  # type: ignore  # pylint: disable=import-error
 
@@ -41,20 +41,20 @@ class GoogleAssistant:
         match = re.search(r'<div class="show_text_content">(.*?)</div>', response)
         return match.group(1) if match else "No valid response found."
 
-    def call_assistant(self, command: str) -> str:
-        """Send a command to the Google Assistant and process the response."""
+    def call_assistant(self, command: str) -> Optional[str]:
+        """Send a command to the Google Assistant and return the extracted answer.
+
+        Returns None if the Assistant sent no HTML response.
+        """
         logger.info("Sending command to Google Assistant: %s", command)
 
         try:
-            response = self.text_assistant.assist(command)
-            if isinstance(response, tuple):
-                response = response[1]
-            if isinstance(response, bytes):
-                response = response.decode("utf-8")
-            if isinstance(response, str):
-                response = self._extract_response(response)
-            return response
+            _text, html, _audio = self.text_assistant.assist(command)
         except Exception as e:
             logger.error("Error while sending command to Google Assistant: %s", e)
             self._init_text_assistant()
             raise RuntimeError("Assistant error. Re-init Text Assistant") from e
+
+        if html is None:
+            return None
+        return self._extract_response(html.decode("utf-8"))

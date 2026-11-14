@@ -110,7 +110,7 @@ Example 2: to start the mower, publish a message to the `google_assistant/cmnd/n
 
 Example 3: to send the mower to the dock, publish a message to the `google_assistant/cmnd/navimow_running` topic with the payload `Dock`.
 
-With the example configuration, `navimow_running_status` is one of `Run`, `Pause`, `Dock` or `Offline` (mower unreachable, e.g. during winter break). Answers not covered by `result_map` are published as the raw Assistant text.
+With the example configuration, `navimow_running_status` is one of `Run`, `Pause`, `Dock` or `Offline` (mower unreachable, e.g. during winter break). Answers not covered by `result_map` are published as the text extracted by `regex`.
 
 ## Troubleshooting
 

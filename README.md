@@ -1,6 +1,6 @@
 # Google Assistant MQTT Connector
 
-This project is a connector for the Google Assistant SDK. It is based on by the [Google Assistant SDK Home Assistant Integration](https://www.home-assistant.io/integrations/google_assistant_sdk) and [this discussion about a Segway Navimow home assistant integration](https://community.home-assistant.io/t/segway-navimow/435023/1). Thank you to the authors of these projects for their work and inspiration.
+This project is a connector for the Google Assistant SDK. It is based on the [Google Assistant SDK Home Assistant Integration](https://www.home-assistant.io/integrations/google_assistant_sdk) and [this discussion about a Segway Navimow home assistant integration](https://community.home-assistant.io/t/segway-navimow/435023/1). Thank you to the authors of these projects for their work and inspiration.
 
 This connector allows you to control your devices using mqtt to make it easier to integrate certain devices with smart home systems, e.g., [openHAB](https://www.openhab.org). This is especially useful for devices that do not have a native integration with the smart home system you are using but can be controlled via Google Assistant.
 
@@ -94,7 +94,7 @@ black src tests run.py
 
 ## How to use the connector
 
-Example 1: status message sent to `google_assistant/stat/#`
+Example 1: status message sent to `google_assistant/stat`
 
 ```json
 {
@@ -109,3 +109,12 @@ Example 1: status message sent to `google_assistant/stat/#`
 Example 2: to start the mower, publish a message to the `google_assistant/cmnd/navimow_running` topic with the payload `Run`.
 
 Example 3: to send the mower to the dock, publish a message to the `google_assistant/cmnd/navimow_running` topic with the payload `Dock`.
+
+With the example configuration, `navimow_running_status` is one of `Run`, `Pause`, `Dock` or `Offline` (mower unreachable, e.g. during winter break). Answers not covered by `result_map` are published as the raw Assistant text.
+
+## Troubleshooting
+
+- **`Permission denied` on `docker compose`**: your user may not access the Docker daemon. Run `sudo usermod -aG docker $USER`, then log out and back in. Members of the `docker` group effectively have root rights; alternatively prefix the commands with `sudo`.
+- **No connection to the MQTT broker**: inside the container, `localhost` is the container itself. If the broker runs on the same host, set `MQTT_SERVER` to the host's IP address or hostname.
+- **Connector keeps getting disconnected**: two instances use the same `MQTT_CLIENT_ID` (e.g. one local, one in Docker). The broker allows only one connection per client id.
+- **`No valid response found.` / unexpected status texts**: the Assistant's answer did not match `regex` or `result_map` in `mqtt_config.json`. Ask the same question in the Google Home app to see the exact wording, then adjust `regex` or `result_map`.
